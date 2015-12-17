@@ -1,7 +1,9 @@
 import os
 from distutils import log
 
-from numpy.distutils.system_info import system_info, NotFoundError, dict_append, so_ext
+from numpy.distutils.system_info import system_info, NotFoundError, dict_append, so_ext, libpaths, default_lib_dirs, default_include_dirs
+
+print default_lib_dirs
 
 def info_factory(name, libnames, headers, frameworks=None, 
                  section=None, classname=None):
@@ -41,22 +43,20 @@ def info_factory(name, libnames, headers, frameworks=None,
         def calc_info(self):
             """ Compute the informations of the library """
             if libnames:
-                libs = self.get_libs('libraries', '')
-                if not libs:
-                    libs = libnames
-                # Look for the shared library
-                lib_dirs = self.get_lib_dirs()
+                lib_dirs = default_lib_dirs
                 tmp = None
                 for d in lib_dirs:
-                    tmp = self.check_libs(d, libs)
+                    tmp = self.check_libs(d, libnames)
+                    print "tmp=", tmp
                     if tmp is not None:
-                        info    = tmp
+                        info = tmp
                         break
+                    
                 if tmp is None:
                     return
 
                 # Look for the header file
-                include_dirs = self.get_include_dirs()
+                include_dirs = default_include_dirs
                 inc_dir = None
                 for d in include_dirs:
                     p = self.combine_paths(d, headers)
@@ -87,3 +87,9 @@ def info_factory(name, libnames, headers, frameworks=None,
     _ret.section = section
     return _ret
 
+
+sf_info = info_factory('samplerate', ['samplerate'], ['samplerate.h'],
+                           classname='SamplerateInfo')()
+sf_config = sf_info.get_info(2)
+
+print sf_config
